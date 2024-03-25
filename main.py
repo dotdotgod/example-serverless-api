@@ -1,13 +1,12 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
+from fastapi.middleware.cors import CORSMiddleware
 
 docs_url = "/docs"
 
-# app instance
 app = FastAPI(
     title="API",
-    description="API for my Link-tue data",
+    description="API for my Example data",
     version="1.0",
     terms_of_service="/",
     docs_url=docs_url,
@@ -24,18 +23,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-prefix_v1 = "/api/v1"
+# prefix_v1 = "/api/v1"
 
 # auth router
 # app.include_router(auth, prefix=prefix_v1)
 
 
-@app.get(
-    "/",
-    include_in_schema=False,
-)
+@app.get("/")
 def hello_world():
-    return {"body": "hello_worldå"}
+    return {"body": "hello_world"}
 
 
 handler = Mangum(app)

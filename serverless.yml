@@ -14,8 +14,8 @@ provider:
   deploymentBucket:
     name: ${ssm:/${self:custom.project-name}-${self:custom.stage}-serverless-bucket} # 배포 버킷 이름
     blockPublicAccess: true # 공개 접근 차단
-  environment:
-    STRIP_STAGE_PATH: yes # 스테이지 경로 제거
+#  environment:
+#    STRIP_STAGE_PATH: yes # 스테이지 경로 제거
   iam:
     role: # IAM 역할 설정
       ${file(resources/iam-role.yml)} # IAM 정책 설정
