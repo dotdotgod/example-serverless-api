@@ -1,0 +1,38 @@
+statements: # IAM 정책
+  - Effect: Allow
+    Action:
+      - dynamodb:Query
+      - dynamodb:Scan
+      - dynamodb:GetItem
+      - dynamodb:PutItem
+      - dynamodb:UpdateItem
+      - dynamodb:DeleteItem
+    Resource: '*'
+#      Fn::GetAtt: # Lambdas IAM 역할과 dynamodb 테이블을 연결
+#        - user
+#        - deeplink
+#        # - TestTable
+#        - Arn
+  - Effect: Allow
+    Action:
+      - cognito-idp:AdminInitiateAuth
+      - cognito-idp:AdminRespondToAuthChallenge
+      - cognito-idp:AdminUserGlobalSignOut
+      - cognito-idp:AdminUpdateUserAttributes
+      - cognito-idp:ListUsers
+      - cognito-idp:ListUserPools
+      - cognito-idp:ListUserPoolClients
+      - cognito-idp:DescribeUserPoolClient
+      - cognito-idp:DeleteUser
+    Resource: '*' # 모든 리소스에 대한 권한 부여
+  - Effect: Allow
+    Action:
+      - ssm:GetParameter
+    Resource: '*' # 모든 리소스에 대한 권한 부여
+  - Effect: Allow
+    Action:
+      - cloudfront:CreateInvalidation
+      - cloudfront:GetDistribution
+      - cloudfront:GetInvalidation
+      - cloudfront:ListInvalidations
+    Resource: '*' # 모든 리소스에 대한 권한 부여

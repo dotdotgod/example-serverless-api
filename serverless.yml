@@ -1,0 +1,46 @@
+service: example-serverless-api
+
+frameworkVersion: '3'
+
+configValidationMode: error # 유효성 검사 모드
+
+provider:
+  name: aws
+  runtime: python3.11
+  stage: ${self:custom.stage}
+  region: ${self:custom.region}
+  httpApi:
+    id: ${ssm:/${self:custom.project-name}-${self:custom.stage}-api-gateway-id} # API 게이트웨이 ID
+  deploymentBucket:
+    name: ${ssm:/${self:custom.project-name}-${self:custom.stage}-serverless-bucket} # 배포 버킷 이름
+    blockPublicAccess: true # 공개 접근 차단
+  environment:
+    STRIP_STAGE_PATH: yes # 스테이지 경로 제거
+  iam:
+    role: # IAM 역할 설정
+      ${file(resources/iam-role.yml)} # IAM 정책 설정
+
+custom:
+  project-name: example
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'ap-northeast-2'}
+
+
+functions:
+  app:
+    layers: # 레이어 적용
+      - ${ssm:/${self:custom.project-name}-dependency-layers} # 레이어 ARN
+    handler: main.handler
+    name: ${self:custom.project-name}-${self:custom.stage}-app # 람다 함수 이름
+    events:
+      - httpApi:
+          method: '*'
+          path: '*'
+          authorizer:
+            type: jwt
+            id: ${ssm:/${self:custom.project-name}-${self:custom.stage}-api-gateway-authorizer-id} # API 게이트웨이 인증자 ID
+
+package:
+  patterns:
+      - '!node_modules/**'
+      - '!venv/**'
