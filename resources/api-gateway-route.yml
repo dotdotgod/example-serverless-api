@@ -1,0 +1,21 @@
+Resources:
+  ApiGatewayAuthRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: ${self:provider.httpApi.id}
+      AuthorizationType: NONE
+      RouteKey: ANY /api/v1/auth/token
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref HttpApiIntegrationApp
+  ApiGatewayAuthRefreshRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: ${self:provider.httpApi.id}
+      AuthorizationType: NONE
+      RouteKey: ANY /api/v1/auth/token/refresh
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref HttpApiIntegrationApp

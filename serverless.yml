@@ -44,3 +44,6 @@ package:
   patterns:
       - '!node_modules/**'
       - '!venv/**'
+
+resources:
+  - ${file(resources/api-gateway-route.yml)}

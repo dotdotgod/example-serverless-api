@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from mangum import Mangum
 from fastapi.middleware.cors import CORSMiddleware
 
+from api.v1.auth.auth_router import auth
+
 docs_url = "/docs"
 
 app = FastAPI(
@@ -23,10 +25,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# prefix_v1 = "/api/v1"
+prefix_v1 = "/api/v1"
 
 # auth router
-# app.include_router(auth, prefix=prefix_v1)
+app.include_router(auth, prefix=prefix_v1)
 
 
 @app.get("/")
