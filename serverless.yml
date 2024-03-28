@@ -4,6 +4,9 @@ frameworkVersion: '3'
 
 configValidationMode: error # 유효성 검사 모드
 
+plugins:
+  - serverless-offline
+
 provider:
   name: aws
   runtime: python3.11
@@ -24,7 +27,6 @@ custom:
   project-name: example
   stage: ${opt:stage, 'dev'}
   region: ${opt:region, 'ap-northeast-2'}
-
 
 functions:
   app:
