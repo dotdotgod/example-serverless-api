@@ -31,7 +31,7 @@ prefix_v1 = "/api/v1"
 app.include_router(auth, prefix=prefix_v1)
 
 
-@app.get("/")
+@app.get("/", include_in_schema=False)
 def hello_world():
     return {"body": "hello_world"}
 
