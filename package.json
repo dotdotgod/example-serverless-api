@@ -1,0 +1,15 @@
+{
+  "name": "example-serverless-api",
+  "version": "1.0.0",
+  "description": "This is a simple example of a serverless API using AWS Lambda and API Gateway. The API is written in Python and uses the Serverless Framework to deploy the Lambda function and API Gateway.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "serverless-offline": "^13.3.3"
+  }
+}
