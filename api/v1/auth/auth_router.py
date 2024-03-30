@@ -26,3 +26,9 @@ async def get_token():
 @auth.get("/token/refresh")
 async def get_refresh_token():
     return {"body": "get_refresh"}
+
+
+@auth.post("/sign-up")
+async def sign_up():
+    auth_service.sign_up()
+    return {"body": "login"}

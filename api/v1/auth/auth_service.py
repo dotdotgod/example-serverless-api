@@ -85,3 +85,37 @@
 #
 #     token_dto = TokenDto(access_token=access_token, refresh_token=refresh_token)
 #     return token_dto
+def sign_up():
+    # import boto3
+    #
+    # client = boto3.client("cognito-idp", region_name="your_region")
+    #
+    # # 사용자 등록
+    # response = client.sign_up(
+    #     ClientId="your_app_client_id",
+    #     Username="username",
+    #     Password="password",
+    #     UserAttributes=[
+    #         {"Name": "email", "Value": "email@example.com"},
+    #         {"Name": "phone_number", "Value": "+15555555555"},
+    #     ],
+    # )
+    #
+    # # 이메일 또는 전화번호로 받은 인증 코드를 사용하여 사용자 확인
+    # response = client.confirm_sign_up(
+    #     ClientId="your_app_client_id",
+    #     Username="username",
+    #     ConfirmationCode="confirmation_code",  # 이메일 또는 전화번호로 받은 인증 코드
+    # )
+    #
+    # # 사용자 풀에서 사용자를 인증하고, 인증 토큰을 받음
+    # response = client.initiate_auth(
+    #     ClientId="your_app_client_id",
+    #     AuthFlow="USER_PASSWORD_AUTH",
+    #     AuthParameters={"USERNAME": "username", "PASSWORD": "password"},
+    # )
+    #
+    # # 인증 토큰 출력
+    # print(response["AuthenticationResult"]["IdToken"])
+
+    return None
