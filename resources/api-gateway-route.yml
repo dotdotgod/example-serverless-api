@@ -19,3 +19,54 @@ Resources:
         - /
         - - integrations
           - !Ref HttpApiIntegrationApp
+  ApiGatewaySignUpRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: ${self:provider.httpApi.id}
+      AuthorizationType: NONE
+      RouteKey: POST /api/v1/auth/sign-up
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref HttpApiIntegrationApp
+  ApiGatewaySignUpAllRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: ${self:provider.httpApi.id}
+      AuthorizationType: NONE
+      RouteKey: POST /api/v1/auth/sign-up/{proxy+}
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref HttpApiIntegrationApp
+  ApiGatewaySignInRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: ${self:provider.httpApi.id}
+      AuthorizationType: NONE
+      RouteKey: POST /api/v1/auth/sign-in
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref HttpApiIntegrationApp
+
+  ApiGatewayDocsRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: ${self:provider.httpApi.id}
+      AuthorizationType: NONE
+      RouteKey: GET /docs
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref HttpApiIntegrationApp
+  ApiGatewayDocsJsonRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: ${self:provider.httpApi.id}
+      AuthorizationType: NONE
+      RouteKey: GET /openapi.json
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref HttpApiIntegrationApp

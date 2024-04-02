@@ -1,8 +1,10 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from mangum import Mangum
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.v1.auth.auth_router import auth
+from middleware.authorization_middleware import add_user_info
+from middleware.global_exception_middleware import global_error_handler
 
 docs_url = "/docs"
 
@@ -25,15 +27,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# setup middleware
+app.middleware("http")(global_error_handler)
+
+
 prefix_v1 = "/api/v1"
 
 # auth router
 app.include_router(auth, prefix=prefix_v1)
 
 
-@app.get("/", include_in_schema=False)
-def hello_world():
-    return {"body": "hello_world"}
+@app.get("/")
+def hello_world(request=Depends(add_user_info)):
+    user_id = request.state.user_id
+    return {"body": f"hello_world! -> {user_id}"}
 
 
 handler = Mangum(app)

@@ -10,6 +10,107 @@
 # cognito = initialize_cognito()
 #
 #
+
+import boto3
+from fastapi import HTTPException
+
+from api.v1.auth.dtos.auth_dto import SignUpReqDTO, ConfirmSignUpReqDTO, SignInReqDTO
+from api.v1.auth.dtos.cognito_idp_response import CognitoIdpResponse
+from api.v1.auth.dtos.token_dto import TokenDTO
+from config.cognito import initialize_cognito, get_secret_hash
+from config.settings import Settings
+
+settings = Settings()
+cognito = initialize_cognito()
+client = boto3.client("cognito-idp", region_name=settings.REGION)
+
+
+async def sign_up(dto: SignUpReqDTO):
+    # 사용자 등록
+    try:
+        response = client.sign_up(
+            ClientId=cognito.cognito_user_pool_client_id,
+            SecretHash=get_secret_hash(
+                dto.email,
+                cognito.cognito_user_pool_client_id,
+                cognito.cognito_user_poll_client_secret,
+            ),
+            Username=dto.email,
+            Password=dto.password,
+            UserAttributes=[
+                {
+                    "Name": "email",  # 이메일 주소를 식별자로 사용
+                    "Value": dto.email,
+                },
+            ],
+        )
+        return CognitoIdpResponse(**response)
+    except client.exceptions.InvalidPasswordException as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+async def confirm_sign_up(dto: ConfirmSignUpReqDTO):
+    # 이메일 인증
+    try:
+        response = client.confirm_sign_up(
+            ClientId=cognito.cognito_user_pool_client_id,
+            SecretHash=get_secret_hash(
+                dto.email,
+                cognito.cognito_user_pool_client_id,
+                cognito.cognito_user_poll_client_secret,
+            ),
+            Username=dto.email,
+            ConfirmationCode=dto.confirmation_code,  # 이메일 또는 전화번호로 받은 인증 코드
+        )
+        return response
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+async def resend_confirm_code(dto):
+    try:
+        response = client.resend_confirmation_code(
+            ClientId=cognito.cognito_user_pool_client_id,
+            SecretHash=get_secret_hash(
+                dto.email,
+                cognito.cognito_user_pool_client_id,
+                cognito.cognito_user_poll_client_secret,
+            ),
+            Username=dto.email,
+        )
+        return CognitoIdpResponse(**response)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+async def sign_in(dto: SignInReqDTO):
+    # 사용자 풀에서 사용자를 인증하고, 인증 토큰을 받음
+    try:
+        response = client.initiate_auth(
+            AuthFlow="USER_PASSWORD_AUTH",
+            AuthParameters={
+                "USERNAME": dto.email,
+                "PASSWORD": dto.password,
+                "SECRET_HASH": get_secret_hash(
+                    dto.email,
+                    cognito.cognito_user_pool_client_id,
+                    cognito.cognito_user_poll_client_secret,
+                ),
+            },
+            ClientId=cognito.cognito_user_pool_client_id,
+        )
+
+        return TokenDTO(
+            token_type=response["AuthenticationResult"]["TokenType"],
+            access_token=response["AuthenticationResult"]["AccessToken"],
+            refresh_token=response["AuthenticationResult"]["RefreshToken"],
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # async def get_refresh_token(token: str):
 #     cognito_client_id = cognito.cognito_client_id
 #     cognito_client_password = cognito.cognito_client_password
@@ -85,37 +186,3 @@
 #
 #     token_dto = TokenDto(access_token=access_token, refresh_token=refresh_token)
 #     return token_dto
-def sign_up():
-    # import boto3
-    #
-    # client = boto3.client("cognito-idp", region_name="your_region")
-    #
-    # # 사용자 등록
-    # response = client.sign_up(
-    #     ClientId="your_app_client_id",
-    #     Username="username",
-    #     Password="password",
-    #     UserAttributes=[
-    #         {"Name": "email", "Value": "email@example.com"},
-    #         {"Name": "phone_number", "Value": "+15555555555"},
-    #     ],
-    # )
-    #
-    # # 이메일 또는 전화번호로 받은 인증 코드를 사용하여 사용자 확인
-    # response = client.confirm_sign_up(
-    #     ClientId="your_app_client_id",
-    #     Username="username",
-    #     ConfirmationCode="confirmation_code",  # 이메일 또는 전화번호로 받은 인증 코드
-    # )
-    #
-    # # 사용자 풀에서 사용자를 인증하고, 인증 토큰을 받음
-    # response = client.initiate_auth(
-    #     ClientId="your_app_client_id",
-    #     AuthFlow="USER_PASSWORD_AUTH",
-    #     AuthParameters={"USERNAME": "username", "PASSWORD": "password"},
-    # )
-    #
-    # # 인증 토큰 출력
-    # print(response["AuthenticationResult"]["IdToken"])
-
-    return None
