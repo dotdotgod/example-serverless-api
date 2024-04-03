@@ -50,23 +50,25 @@ Resources:
         - - integrations
           - !Ref HttpApiIntegrationApp
 
-  ApiGatewayDocsRoute:
-    Type: AWS::ApiGatewayV2::Route
-    Properties:
-      ApiId: ${self:provider.httpApi.id}
-      AuthorizationType: NONE
-      RouteKey: GET /docs
-      Target: !Join
-        - /
-        - - integrations
-          - !Ref HttpApiIntegrationApp
-  ApiGatewayDocsJsonRoute:
-    Type: AWS::ApiGatewayV2::Route
-    Properties:
-      ApiId: ${self:provider.httpApi.id}
-      AuthorizationType: NONE
-      RouteKey: GET /openapi.json
-      Target: !Join
-        - /
-        - - integrations
-          - !Ref HttpApiIntegrationApp
+#############테스트용 /docs 경로 오픈#############
+#  ApiGatewayDocsRoute:
+#    Type: AWS::ApiGatewayV2::Route
+#    Properties:
+#      ApiId: ${self:provider.httpApi.id}
+#      AuthorizationType: NONE
+#      RouteKey: GET /docs
+#      Target: !Join
+#        - /
+#        - - integrations
+#          - !Ref HttpApiIntegrationApp
+#  ApiGatewayDocsJsonRoute:
+#    Type: AWS::ApiGatewayV2::Route
+#    Properties:
+#      ApiId: ${self:provider.httpApi.id}
+#      AuthorizationType: NONE
+#      RouteKey: GET /openapi.json
+#      Target: !Join
+#        - /
+#        - - integrations
+#          - !Ref HttpApiIntegrationApp
+##############################################
