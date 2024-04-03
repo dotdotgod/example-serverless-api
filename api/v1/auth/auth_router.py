@@ -1,5 +1,6 @@
-from fastapi import APIRouter
-from fastapi.security import HTTPBearer
+from fastapi import APIRouter, Query, Security
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from starlette.responses import RedirectResponse
 
 from api.v1.auth import auth_service
 from api.v1.auth.dtos.auth_dto import (
@@ -10,30 +11,51 @@ from api.v1.auth.dtos.auth_dto import (
 )
 from api.v1.auth.dtos.cognito_idp_response import CognitoIdpResponse
 from api.v1.auth.dtos.token_dto import TokenDTO
+from config.settings import Settings
 
 auth = APIRouter(prefix="/auth", tags=["auth"])
 security = HTTPBearer()
-
-
-# @auth.get("/token")
-# async def get_token(code: str):
-#     return await auth_service.get_access_token(code)
-#
-#
-# @auth.get("/token/refresh")
-# async def get_refresh_token(credentials: HTTPAuthorizationCredentials = Security(security)):
-#     token = credentials.credentials
-#     return await auth_service.get_refresh_token(token)
+settings = Settings()
 
 
 @auth.get("/token")
-async def get_token():
-    return {"body": "get_token"}
+async def get_token(
+    code: str = Query(...),
+    redirect_url: str = Query(default="http://localhost:5001/api/v1/auth/token"),
+):
+    return await auth_service.get_access_token(code, redirect_url)
 
 
 @auth.get("/token/refresh")
-async def get_refresh_token():
-    return {"body": "get_refresh"}
+async def get_refresh_token(
+    credentials: HTTPAuthorizationCredentials = Security(security),
+):
+    token = credentials.credentials
+    return await auth_service.get_refresh_token(token)
+
+
+@auth.get("/sign-in/ui")
+async def sign_in_ui(
+    redirect_url: str = Query(default=settings.REDIRECT_URL),
+):
+    url = auth_service.sign_in_ui(redirect_url)
+    return RedirectResponse(url=url)
+
+
+@auth.get("/sign-up/ui")
+async def sign_up_ui(
+    redirect_url: str = Query(default=settings.REDIRECT_URL),
+):
+    url = auth_service.sign_up_ui(redirect_url)
+    return RedirectResponse(url=url)
+
+
+@auth.get("/sign-in/google")
+async def google_login_url(
+    redirect_url: str = Query(default=settings.REDIRECT_URL),
+):
+    url = auth_service.google_login_url(redirect_url)
+    return RedirectResponse(url=url)
 
 
 @auth.post("/sign-up", response_model=CognitoIdpResponse)

@@ -15,6 +15,16 @@ def initialize_cognito():
     stage = settings.STAGE
     region = settings.REGION
 
+    if settings.STAGE == "dev":
+        cognito_data = CognitoData(
+            cognito_user_pool_id=settings.COGNITO_USER_POOL_ID,
+            cognito_user_pool_client_id=settings.COGNITO_USER_POOL_CLIENT_ID,
+            cognito_user_poll_client_secret=settings.COGNITO_USER_POOL_CLIENT_SECRET,
+            cognito_domain_url=settings.COGNITO_DOMAIN_URL,
+            cognito_region=settings.REGION,
+        )
+        return cognito_data
+
     ssm = boto3.client("ssm")
     cognito_user_pool_id = ssm.get_parameter(
         Name=f"{project_name}-{stage}-cognito-user-pool-id", WithDecryption=True
@@ -46,7 +56,14 @@ def initialize_cognito():
     return cognito_data
 
 
-def get_secret_hash(user_name: str, client_id: str, client_secret: str):
+def get_basic_secret_hash(client_id: str, client_secret: str):
+    msg = client_id + ":" + client_secret
+    encoded_bytes = base64.b64encode(msg.encode("utf-8"))
+    encoded_string = encoded_bytes.decode("utf-8")
+    return encoded_string
+
+
+def get_user_secret_hash(user_name: str, client_id: str, client_secret: str):
     secret_hash = hmac.new(
         key=client_secret.encode("utf-8"),
         msg=(user_name + client_id).encode("utf-8"),

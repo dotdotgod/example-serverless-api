@@ -34,7 +34,7 @@ Resources:
     Properties:
       ApiId: ${self:provider.httpApi.id}
       AuthorizationType: NONE
-      RouteKey: POST /api/v1/auth/sign-up/{proxy+}
+      RouteKey: ANY /api/v1/auth/sign-up/{proxy+}
       Target: !Join
         - /
         - - integrations
@@ -49,26 +49,36 @@ Resources:
         - /
         - - integrations
           - !Ref HttpApiIntegrationApp
+  ApiGatewaySignInAllRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: ${self:provider.httpApi.id}
+      AuthorizationType: NONE
+      RouteKey: ANY /api/v1/auth/sign-in/{proxy+}
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref HttpApiIntegrationApp
 
 #############테스트용 /docs 경로 오픈#############
-#  ApiGatewayDocsRoute:
-#    Type: AWS::ApiGatewayV2::Route
-#    Properties:
-#      ApiId: ${self:provider.httpApi.id}
-#      AuthorizationType: NONE
-#      RouteKey: GET /docs
-#      Target: !Join
-#        - /
-#        - - integrations
-#          - !Ref HttpApiIntegrationApp
-#  ApiGatewayDocsJsonRoute:
-#    Type: AWS::ApiGatewayV2::Route
-#    Properties:
-#      ApiId: ${self:provider.httpApi.id}
-#      AuthorizationType: NONE
-#      RouteKey: GET /openapi.json
-#      Target: !Join
-#        - /
-#        - - integrations
-#          - !Ref HttpApiIntegrationApp
+  ApiGatewayDocsRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: ${self:provider.httpApi.id}
+      AuthorizationType: NONE
+      RouteKey: GET /docs
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref HttpApiIntegrationApp
+  ApiGatewayDocsJsonRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: ${self:provider.httpApi.id}
+      AuthorizationType: NONE
+      RouteKey: GET /openapi.json
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref HttpApiIntegrationApp
 ##############################################

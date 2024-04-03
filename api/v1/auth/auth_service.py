@@ -1,23 +1,15 @@
-# import base64
-#
-# import requests
-# from cognitojwt import jwt_sync
-#
-#
-# settings = Settings()
-# ddb = initialize_dynamodb()
-# user_table = ddb.Table("user")
-# cognito = initialize_cognito()
-#
-#
-
 import boto3
+import requests
 from fastapi import HTTPException
 
 from api.v1.auth.dtos.auth_dto import SignUpReqDTO, ConfirmSignUpReqDTO, SignInReqDTO
 from api.v1.auth.dtos.cognito_idp_response import CognitoIdpResponse
 from api.v1.auth.dtos.token_dto import TokenDTO
-from config.cognito import initialize_cognito, get_secret_hash
+from config.cognito import (
+    initialize_cognito,
+    get_basic_secret_hash,
+    get_user_secret_hash,
+)
 from config.settings import Settings
 
 settings = Settings()
@@ -30,7 +22,7 @@ async def sign_up(dto: SignUpReqDTO):
     try:
         response = client.sign_up(
             ClientId=cognito.cognito_user_pool_client_id,
-            SecretHash=get_secret_hash(
+            SecretHash=get_user_secret_hash(
                 dto.email,
                 cognito.cognito_user_pool_client_id,
                 cognito.cognito_user_poll_client_secret,
@@ -56,7 +48,7 @@ async def confirm_sign_up(dto: ConfirmSignUpReqDTO):
     try:
         response = client.confirm_sign_up(
             ClientId=cognito.cognito_user_pool_client_id,
-            SecretHash=get_secret_hash(
+            SecretHash=get_user_secret_hash(
                 dto.email,
                 cognito.cognito_user_pool_client_id,
                 cognito.cognito_user_poll_client_secret,
@@ -73,7 +65,7 @@ async def resend_confirm_code(dto):
     try:
         response = client.resend_confirmation_code(
             ClientId=cognito.cognito_user_pool_client_id,
-            SecretHash=get_secret_hash(
+            SecretHash=get_user_secret_hash(
                 dto.email,
                 cognito.cognito_user_pool_client_id,
                 cognito.cognito_user_poll_client_secret,
@@ -93,7 +85,7 @@ async def sign_in(dto: SignInReqDTO):
             AuthParameters={
                 "USERNAME": dto.email,
                 "PASSWORD": dto.password,
-                "SECRET_HASH": get_secret_hash(
+                "SECRET_HASH": get_user_secret_hash(
                     dto.email,
                     cognito.cognito_user_pool_client_id,
                     cognito.cognito_user_poll_client_secret,
@@ -111,78 +103,86 @@ async def sign_in(dto: SignInReqDTO):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# async def get_refresh_token(token: str):
-#     cognito_client_id = cognito.cognito_client_id
-#     cognito_client_password = cognito.cognito_client_password
-#     cognito_domain = cognito.cognito_domain
-#
-#     base_encode = cognito_client_id + ":" + cognito_client_password
-#     encoded_bytes = base64.b64encode(base_encode.encode("utf-8"))
-#     encoded_string = encoded_bytes.decode("utf-8")
-#
-#     token_endpoint = cognito_domain + "/oauth2/token"
-#     payload = {
-#         "grant_type": "refresh_token",
-#         "client_id": cognito_client_id,
-#         "refresh_token": token,
-#     }
-#
-#     # 헤더 설정
-#     headers = {
-#         "Content-Type": "application/x-www-form-urlencoded",
-#         "Authorization": "Basic " + encoded_string,
-#     }
-#
-#     response = requests.post(token_endpoint, headers=headers, data=payload)
-#     json_data = response.json()
-#     access_token = json_data.get("access_token")
-#     token_dto = TokenDto(access_token=access_token, refresh_token=token)
-#     return token_dto
-#
-#
-# async def get_access_token(code: str):
-#     cognito_client_id = cognito.cognito_client_id
-#     cognito_client_password = cognito.cognito_client_password
-#     redirect_uri = cognito.redirect_uri
-#     cognito_domain = cognito.cognito_domain
-#     cognito_userpool_region = cognito.cognito_userpool_region
-#     cognito_userpool_id = cognito.cognito_userpool_id
-#
-#     base_encode = cognito_client_id + ":" + cognito_client_password
-#     encoded_bytes = base64.b64encode(base_encode.encode("utf-8"))
-#     encoded_string = encoded_bytes.decode("utf-8")
-#
-#     token_endpoint = cognito_domain + "/oauth2/token"
-#     payload = {
-#         "grant_type": "authorization_code",
-#         "client_id": cognito_client_id,
-#         "code": code,
-#         "redirect_uri": redirect_uri,
-#     }
-#
-#     # 헤더 설정
-#     headers = {
-#         "Content-Type": "application/x-www-form-urlencoded",
-#         "Authorization": "Basic " + encoded_string,
-#     }
-#
-#     response = requests.post(token_endpoint, headers=headers, data=payload)
-#     json_data = response.json()
-#     access_token = json_data.get("access_token")
-#     refresh_token = json_data.get("refresh_token")
-#     id_token = json_data.get("id_token")
-#     result = jwt_sync.decode(
-#         id_token, cognito_userpool_region, cognito_userpool_id, cognito_client_id
-#     )
-#     email = result.get("email")
-#     cognito_id = result.get("sub")
-#
-#     user = await user_service.get_user(cognito_id)
-#     if not user:
-#         create_user_dto = UserDto(
-#             email=email, id=cognito_id, created_at=get_current_time()
-#         )
-#         user_table.put_item(Item=create_user_dto.dict())
-#
-#     token_dto = TokenDto(access_token=access_token, refresh_token=refresh_token)
-#     return token_dto
+def sign_up_ui(redirect_url):
+    url: str = (
+        f"{cognito.cognito_domain_url}/signup?response_type=code&client_id={cognito.cognito_user_pool_client_id}"
+        f"&state=state&scope=email+aws.cognito.signin.user.admin&redirect_uri={redirect_url}"
+    )
+    return url
+
+
+def sign_in_ui(redirect_url):
+    url: str = (
+        f"{cognito.cognito_domain_url}/login?response_type=code&client_id={cognito.cognito_user_pool_client_id}"
+        f"&state=state&scope=email+aws.cognito.signin.user.admin&redirect_uri={redirect_url}"
+    )
+    return url
+
+
+def google_login_url(redirect_url: str):
+    url: str = (
+        f"{cognito.cognito_domain_url}/oauth2/authorize?response_type=code&client_id={cognito.cognito_user_pool_client_id}"
+        f"&identity_provider=Google&state=state&scope=email&redirect_uri={redirect_url}"
+    )
+    return url
+
+
+async def get_access_token(code: str, redirect_url: str):
+
+    encoded_string = get_basic_secret_hash(
+        cognito.cognito_user_pool_client_id, cognito.cognito_user_poll_client_secret
+    )
+
+    token_endpoint = cognito.cognito_domain_url + "/oauth2/token"
+    payload = {
+        "grant_type": "authorization_code",
+        "client_id": cognito.cognito_user_pool_client_id,
+        "code": code,
+        "redirect_uri": redirect_url,
+    }
+
+    # 헤더 설정
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Authorization": "Basic " + encoded_string,
+    }
+
+    response = requests.post(token_endpoint, headers=headers, data=payload)
+    json_data = response.json()
+    access_token = json_data.get("access_token")
+    refresh_token = json_data.get("refresh_token")
+
+    # # 토큰 파싱 예시
+    # id_token = json_data.get("id_token")
+    # result = jwt_sync.decode(
+    #     id_token, cognito.cognito_region, cognito.cognito_user_pool_id, cognito.cognito_user_pool_client_id
+    # )
+
+    token_dto = TokenDTO(access_token=access_token, refresh_token=refresh_token)
+    return token_dto
+
+
+async def get_refresh_token(token: str):
+
+    encoded_string = get_basic_secret_hash(
+        cognito.cognito_user_pool_client_id, cognito.cognito_user_poll_client_secret
+    )
+
+    token_endpoint = cognito.cognito_domain_url + "/oauth2/token"
+    payload = {
+        "grant_type": "refresh_token",
+        "client_id": cognito.cognito_user_pool_client_id,
+        "refresh_token": token,
+    }
+
+    # 헤더 설정
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Authorization": "Basic " + encoded_string,
+    }
+
+    response = requests.post(token_endpoint, headers=headers, data=payload)
+    json_data = response.json()
+    access_token = json_data.get("access_token")
+    token_dto = TokenDTO(access_token=access_token, refresh_token=token)
+    return token_dto
